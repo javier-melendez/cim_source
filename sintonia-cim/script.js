@@ -20,6 +20,8 @@
     messageMedia: "Mensaje ↔ Medio"
   };
 
+  const maxScoreByCase = new Map();
+
   const knobConfig = [
     { key: "needs", stateKey: "need", title: "Necesidad del público", icon: "◎" },
     { key: "audiences", stateKey: "audience", title: "Público objetivo", icon: "◌" },
@@ -182,6 +184,19 @@
       }));
     });
     return compatibility;
+  }
+
+  function randomSelections(currentCase) {
+    return {
+      need: randomIndex(currentCase.options.needs.length),
+      audience: randomIndex(currentCase.options.audiences.length),
+      message: randomIndex(currentCase.options.messages.length),
+      medium: randomIndex(currentCase.options.media.length)
+    };
+  }
+
+  function randomIndex(total) {
+    return Math.floor(Math.random() * total);
   }
 
   // Renderizado
@@ -407,8 +422,43 @@
       audienceMedia: calculatePairCompatibility(currentCase, "audienceMedia", selected.audience, selected.medium),
       messageMedia: calculatePairCompatibility(currentCase, "messageMedia", selected.message, selected.medium)
     };
-    const total = Math.round(Object.entries(relations).reduce((sum, [key, value]) => sum + value * relationWeights[key], 0));
+    const rawTotal = calculateWeightedScore(relations);
+    const total = normalizeScore(currentCase, rawTotal);
     return { total, label: integrationLabel(total), relations, selected };
+  }
+
+  function calculateWeightedScore(relations) {
+    return Object.entries(relations).reduce((sum, [key, value]) => sum + value * relationWeights[key], 0);
+  }
+
+  function normalizeScore(currentCase, rawTotal) {
+    const maxScore = getMaxRawScore(currentCase);
+    if (maxScore <= 0) return 0;
+    return Math.min(100, Math.round(rawTotal / maxScore * 100));
+  }
+
+  function getMaxRawScore(currentCase) {
+    if (maxScoreByCase.has(currentCase.id)) return maxScoreByCase.get(currentCase.id);
+    let maxScore = 0;
+    currentCase.options.needs.forEach((need) => {
+      currentCase.options.audiences.forEach((audience) => {
+        currentCase.options.messages.forEach((message) => {
+          currentCase.options.media.forEach((medium) => {
+            const relations = {
+              needAudience: calculatePairCompatibility(currentCase, "needAudience", need, audience),
+              needMessage: calculatePairCompatibility(currentCase, "needMessage", need, message),
+              needMedia: calculatePairCompatibility(currentCase, "needMedia", need, medium),
+              audienceMessage: calculatePairCompatibility(currentCase, "audienceMessage", audience, message),
+              audienceMedia: calculatePairCompatibility(currentCase, "audienceMedia", audience, medium),
+              messageMedia: calculatePairCompatibility(currentCase, "messageMedia", message, medium)
+            };
+            maxScore = Math.max(maxScore, calculateWeightedScore(relations));
+          });
+        });
+      });
+    });
+    maxScoreByCase.set(currentCase.id, maxScore);
+    return maxScore;
   }
 
   function calculatePairCompatibility(currentCase, relation, left, right) {
@@ -502,14 +552,16 @@
   function loadProgress() {
     try {
       const saved = JSON.parse(localStorage.getItem(storageKey));
-      if (!saved) return;
+      if (!saved) return false;
       state.caseIndex = Number.isInteger(saved.caseIndex) ? saved.caseIndex % cases.length : 0;
       state.round = Number.isInteger(saved.round) ? saved.round : 1;
       state.selections = { ...state.selections, ...saved.selections };
       state.history = Array.isArray(saved.history) ? saved.history : [];
       state.discussionMode = Boolean(saved.discussionMode);
+      return true;
     } catch (error) {
       console.warn("No se pudo cargar el progreso local.", error);
+      return false;
     }
   }
 
@@ -521,7 +573,7 @@
     }
     state.caseIndex = 0;
     state.round = 1;
-    state.selections = { need: 0, audience: 0, message: 0, medium: 0 };
+    state.selections = randomSelections(cases[state.caseIndex]);
     state.history = [];
     state.evaluated = null;
     state.scoreRevealed = false;
@@ -540,7 +592,7 @@
   }
 
   function resetSelections() {
-    state.selections = { need: 0, audience: 0, message: 0, medium: 0 };
+    state.selections = randomSelections(cases[state.caseIndex]);
     state.evaluated = null;
     state.scoreRevealed = false;
     render();
@@ -550,7 +602,7 @@
   function nextCase() {
     state.caseIndex = (state.caseIndex + 1) % cases.length;
     state.round += 1;
-    state.selections = { need: 0, audience: 0, message: 0, medium: 0 };
+    state.selections = randomSelections(cases[state.caseIndex]);
     state.evaluated = null;
     state.scoreRevealed = false;
     render();
@@ -594,7 +646,10 @@
 
   // Inicialización
   function init() {
-    loadProgress();
+    const hasSavedProgress = loadProgress();
+    if (!hasSavedProgress) {
+      state.selections = randomSelections(cases[state.caseIndex]);
+    }
     dom.evaluateButton.addEventListener("click", evaluateCurrentRound);
     dom.resetButton.addEventListener("click", resetSelections);
     dom.newCaseButton.addEventListener("click", nextCase);

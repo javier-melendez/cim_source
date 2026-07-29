@@ -36,6 +36,8 @@ La puntuación total se calcula con seis relaciones:
 
 Cada relación recibe un valor de 0 a 100. Si la combinación existe en la matriz del caso, se usa ese valor. Si no existe, el sistema compara etiquetas semánticas compartidas y genera una estimación limitada para no convertir la actividad en una única respuesta correcta.
 
+El puntaje mostrado se normaliza por caso: la mejor combinación posible dentro de las opciones disponibles equivale a 100. Esto permite comparar el desempeño de cada ronda sin exigir que todas las relaciones internas de un caso tengan valores perfectos en la matriz.
+
 ## Personalizar ponderaciones
 
 Edita el objeto `relationWeights` en `script.js`. La suma recomendada es `1.0`. Si cambias los pesos, revisa también las discusiones pedagógicas para que la retroalimentación siga correspondiendo a los criterios del curso.
