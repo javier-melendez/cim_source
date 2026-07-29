@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Sintonía CIM · El reto de la integración</title>
+    <link rel="stylesheet" href="styles.css">
+  </head>
+  <body>
+    <div class="app-shell">
+      <header class="hero">
+        <div>
+          <p class="eyebrow">Mesa de mezcla estratégica</p>
+          <h1>Sintonía CIM</h1>
+          <p class="subtitle">Alinea la necesidad, el público, el mensaje y el medio</p>
+          <p class="intro">
+            Ajusta las cuatro perillas para construir una estrategia de comunicación integrada. El objetivo no es adivinar una respuesta única, sino discutir qué tan coherentes son las relaciones entre tus decisiones.
+          </p>
+        </div>
+        <button class="secondary-button" id="helpButton" type="button">¿Cómo jugar?</button>
+      </header>
+
+      <main>
+        <section class="case-panel" aria-labelledby="caseTitle">
+          <div class="case-heading">
+            <div>
+              <p class="section-label">Caso activo</p>
+              <h2 id="caseTitle"></h2>
+            </div>
+            <div class="case-meta">
+              <span id="roundBadge"></span>
+              <span id="difficultyBadge"></span>
+            </div>
+          </div>
+          <dl class="case-details">
+            <div>
+              <dt>Contexto</dt>
+              <dd id="caseContext"></dd>
+            </div>
+            <div>
+              <dt>Problema de comunicación</dt>
+              <dd id="caseProblem"></dd>
+            </div>
+            <div>
+              <dt>Objetivo general</dt>
+              <dd id="caseObjective"></dd>
+            </div>
+          </dl>
+        </section>
+
+        <section class="knob-grid" id="knobGrid" aria-label="Controles estratégicos"></section>
+
+        <section class="integration-panel" aria-labelledby="integrationTitle">
+          <div class="panel-topline">
+            <div>
+              <p class="section-label">Panel de integración</p>
+              <h2 id="integrationTitle">Resultado de la ronda</h2>
+            </div>
+            <label class="switch">
+              <input id="discussionMode" type="checkbox">
+              <span>Modo de discusión</span>
+            </label>
+          </div>
+
+          <div class="actions">
+            <button class="primary-button" id="evaluateButton" type="button">Evaluar integración</button>
+            <button class="secondary-button" id="resetButton" type="button">Restablecer</button>
+            <button class="secondary-button" id="newCaseButton" type="button">Nuevo caso</button>
+            <button class="danger-button" id="clearProgressButton" type="button">Borrar progreso</button>
+          </div>
+
+          <div class="meter" aria-live="polite">
+            <div class="meter-readout">
+              <span id="scoreValue" class="score-value">--</span>
+              <span id="scoreLabel" class="score-label">Sin evaluar</span>
+            </div>
+            <div class="progress-track" aria-hidden="true">
+              <div class="progress-fill" id="progressFill"></div>
+            </div>
+            <button class="secondary-button hidden" id="revealScoreButton" type="button">Revelar puntaje</button>
+          </div>
+
+          <div class="stats">
+            <div><span>Ronda actual</span><strong id="currentRoundScore">--</strong></div>
+            <div><span>Mejor puntaje</span><strong id="bestScore">--</strong></div>
+            <div><span>Promedio</span><strong id="averageScore">--</strong></div>
+          </div>
+
+          <div class="feedback" id="feedbackPanel" aria-live="polite">
+            <p class="empty-state">Evalúa la combinación para ver la retroalimentación pedagógica.</p>
+          </div>
+        </section>
+
+        <section class="history-panel" aria-labelledby="historyTitle">
+          <h2 id="historyTitle">Historial de rondas</h2>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Ronda</th>
+                  <th>Caso</th>
+                  <th>Puntaje</th>
+                  <th>Nivel</th>
+                </tr>
+              </thead>
+              <tbody id="historyBody"></tbody>
+            </table>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <div class="modal-backdrop hidden" id="helpModal" role="dialog" aria-modal="true" aria-labelledby="helpTitle">
+      <div class="modal">
+        <button class="icon-button close-button" id="closeHelpButton" type="button" aria-label="Cerrar ayuda">×</button>
+        <h2 id="helpTitle">¿Cómo jugar?</h2>
+        <ol>
+          <li>Lee el caso de campaña activo sin buscar una respuesta única.</li>
+          <li>Ajusta cada perilla con mouse, tacto, botones laterales o flechas del teclado.</li>
+          <li>Presiona “Evaluar integración” para analizar las seis relaciones entre decisiones.</li>
+          <li>Activa el modo de discusión si quieres revisar primero la retroalimentación cualitativa y revelar el puntaje después.</li>
+          <li>Usa “Nuevo caso” para avanzar y comparar resultados en el historial.</li>
+        </ol>
+      </div>
+    </div>
+
+    <script src="script.js"></script>
+  </body>
+</html>

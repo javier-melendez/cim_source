@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>The Inevitability of Integrated Communications</title>
+    <link rel="stylesheet" href="styles.css">
+  </head>
+  <body>
+    <a class="skip-link" href="#slide">Saltar a la slide</a>
+
+    <main id="deck" class="deck" aria-labelledby="slide-title">
+      <section id="slide" class="slide" tabindex="-1" aria-live="polite"></section>
+    </main>
+
+    <aside id="index-panel" class="index-panel" aria-labelledby="index-title" aria-hidden="true">
+      <div class="index-header">
+        <h2 id="index-title">Índice</h2>
+        <button id="close-index" class="control-button" type="button" aria-label="Cerrar índice">Cerrar</button>
+      </div>
+      <nav id="index-list" class="index-list" aria-label="Secciones"></nav>
+    </aside>
+    <div id="scrim" class="scrim" hidden></div>
+
+    <footer class="controls" aria-label="Controles de navegación">
+      <button id="prev" class="control-button" type="button" aria-label="Ir a la slide anterior">Anterior</button>
+      <button id="toggle-index" class="control-button" type="button" aria-label="Ver índice">Ver índice</button>
+      <p id="counter" class="counter" aria-label="Progreso"></p>
+      <button id="next" class="control-button" type="button" aria-label="Ir a la slide siguiente">Siguiente</button>
+    </footer>
+
+    <div class="progress-track" aria-hidden="true">
+      <div id="progress-bar" class="progress-bar"></div>
+    </div>
+
+    <div id="announcer" class="sr-only" aria-live="polite" aria-atomic="true"></div>
+
+    <script src="script.js"></script>
+  </body>
+</html>
