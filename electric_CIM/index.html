@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Electricistas de la comunicación</title>
+    <link rel="stylesheet" href="styles.css">
+  </head>
+  <body>
+    <header class="encabezado">
+      <div>
+        <p class="etiqueta">Taller educativo</p>
+        <h1>Electricistas de la comunicación</h1>
+        <p class="subtitulo">Repara el circuito. Haz que el mensaje llegue.</p>
+      </div>
+      <div class="controles-superiores" aria-label="Controles generales">
+        <button id="boton-sonido" class="boton icono" type="button" aria-pressed="false">Sonido</button>
+        <button id="boton-borrar" class="boton secundario" type="button">Borrar progreso</button>
+      </div>
+    </header>
+
+    <main class="tablero">
+      <section class="panel estado" aria-label="Progreso de la actividad">
+        <div>
+          <span>Nivel</span>
+          <strong id="nivel-actual">1/6</strong>
+        </div>
+        <div>
+          <span>Puntaje nivel</span>
+          <strong id="puntaje-nivel">100</strong>
+        </div>
+        <div>
+          <span>Puntaje total</span>
+          <strong id="puntaje-total">0</strong>
+        </div>
+        <div>
+          <span>Intentos</span>
+          <strong id="intentos">0</strong>
+        </div>
+      </section>
+
+      <section class="panel situacion" aria-labelledby="titulo-nivel">
+        <p class="etiqueta">Situación comunicativa</p>
+        <h2 id="titulo-nivel"></h2>
+        <p id="texto-situacion"></p>
+        <p id="texto-ruido" class="interferencia-caso"></p>
+        <p class="instruccion">
+          Arrastra cada reparación hasta el fusible correcto, o selecciona una tarjeta y luego un fusible.
+        </p>
+      </section>
+
+      <section class="zona-trabajo" aria-label="Circuito de comunicación">
+        <div class="caja-fusibles">
+          <div class="placa-titulo">
+            <span>CAJA DE FUSIBLES</span>
+            <span class="luz-piloto" aria-hidden="true"></span>
+          </div>
+          <svg class="cables" viewBox="0 0 980 520" aria-hidden="true" preserveAspectRatio="none">
+            <path class="cable base" d="M110 100 H360 H620 H820 V270 H620 H360 H110 V420 H360 H620 H820 V100"></path>
+            <path class="cable retorno" d="M110 270 V420 H360 H620 H820"></path>
+            <path id="corriente-ida" class="cable corriente ida" d="M110 100 H360 H620 H820 V270 H620 H360 H110 V420 H360 H620 H820 V100 H110"></path>
+            <path id="corriente-retorno" class="cable corriente vuelta" d="M820 270 V420 H620 H360 H110 V270 H360 H620 H820"></path>
+          </svg>
+          <div id="modulos" class="modulos"></div>
+          <div id="ruido-circuito" class="ruido-circuito" aria-hidden="true"></div>
+          <div id="chispa" class="chispa" aria-hidden="true"></div>
+        </div>
+
+        <aside class="bombilla-panel" aria-label="Bombilla de resultado">
+          <div id="bombilla" class="bombilla apagada" aria-hidden="true">
+            <div class="vidrio"></div>
+            <div class="filamento"></div>
+            <div class="base-bombilla"></div>
+          </div>
+          <div class="interruptor">
+            <span>Interruptor</span>
+            <button id="boton-probar" class="palanca" type="button">Probar circuito</button>
+          </div>
+        </aside>
+      </section>
+
+      <section class="panel reparaciones" aria-labelledby="titulo-reparaciones">
+        <div class="cabecera-panel">
+          <div>
+            <p class="etiqueta">Banco de reparaciones</p>
+            <h2 id="titulo-reparaciones">Tarjetas disponibles</h2>
+          </div>
+          <button id="boton-reiniciar" class="boton secundario" type="button">Reiniciar nivel</button>
+        </div>
+        <div id="tarjetas" class="tarjetas" aria-describedby="ayuda-teclado"></div>
+        <p id="ayuda-teclado" class="ayuda">
+          Accesible con teclado: enfoca una tarjeta, pulsa Enter para seleccionarla y luego Enter sobre el fusible.
+        </p>
+      </section>
+
+      <section class="panel diagnostico" aria-labelledby="titulo-diagnostico">
+        <div class="cabecera-panel">
+          <div>
+            <p class="etiqueta">Panel de diagnóstico</p>
+            <h2 id="titulo-diagnostico">Lectura del circuito</h2>
+          </div>
+          <button id="boton-pista" class="boton advertencia" type="button">Solicitar pista</button>
+        </div>
+        <p id="mensaje-diagnostico" aria-live="polite"></p>
+        <div class="acciones">
+          <button id="boton-anterior" class="boton secundario" type="button">Nivel anterior</button>
+          <button id="boton-siguiente" class="boton principal" type="button" disabled>Siguiente nivel</button>
+        </div>
+      </section>
+    </main>
+
+    <div id="pantalla-final" class="pantalla-final oculta" role="dialog" aria-modal="true" aria-labelledby="titulo-final">
+      <div class="resultado-final">
+        <p class="etiqueta">Circuito maestro reparado</p>
+        <h2 id="titulo-final">Actividad completada</h2>
+        <p id="resumen-final"></p>
+        <button id="boton-volver" class="boton principal" type="button">Volver a jugar</button>
+      </div>
+    </div>
+
+    <script src="script.js"></script>
+  </body>
+</html>
