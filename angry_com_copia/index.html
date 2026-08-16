@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>El asedio de la reputación</title>
+    <link rel="stylesheet" href="styles.css">
+  </head>
+  <body>
+    <div id="game-root">
+      <header class="hud" aria-label="Indicadores de partida">
+        <div class="brand">
+          <span class="label">CIM</span>
+          <strong>El asedio de la reputación</strong>
+        </div>
+        <div class="turn-clocks" aria-label="Relojes de turno">
+          <div class="stat timer active" id="clock-player-1"><span>Jugador 1</span><strong id="timer-player-1">3:00</strong></div>
+          <div class="stat timer" id="clock-player-2"><span>Jugador 2</span><strong id="timer-player-2">3:00</strong></div>
+        </div>
+        <div class="integrity">
+          <div><span>Identidad</span><meter id="meter-identity" min="0" max="100" value="100"></meter><b id="value-identity">100%</b></div>
+          <div><span>Imagen</span><meter id="meter-image" min="0" max="100" value="100"></meter><b id="value-image">100%</b></div>
+          <div><span>Reputación</span><meter id="meter-reputation" min="0" max="100" value="100"></meter><b id="value-reputation">100%</b></div>
+        </div>
+        <div class="damage-summary" aria-label="Balance de daño">
+          <div><span>Daño recibido</span><strong id="damage-received">0</strong></div>
+          <div><span>Daño recuperado</span><strong id="damage-recovered">0</strong></div>
+        </div>
+        <button id="sound-toggle" class="icon-button" type="button" aria-pressed="false">Sonido</button>
+        <button id="reset-button" type="button">Reiniciar partida</button>
+      </header>
+
+      <main class="stage">
+        <div id="canvas-host" class="canvas-host"></div>
+        <div id="floating-layer" class="floating-layer" aria-hidden="true"></div>
+
+        <section id="start-screen" class="overlay">
+          <div id="start-panel" class="panel start-panel">
+            <div id="start-intro" class="start-intro">
+              <p class="label">Prototipo educativo</p>
+              <h1>El asedio de la reputación</h1>
+              <p>Protege o destruye Identidad, Imagen y Reputación.</p>
+            </div>
+            <div id="how-to-panel" class="how-to-panel hidden">
+              <div class="how-to-viewport" aria-live="polite">
+                <article class="instruction-card active" data-how-to-slide>
+                  <strong>1. Prepárate</strong>
+                  <p>La defensa empieza. Usa hasta 5 cartas para reforzar Identidad, Imagen o Reputación antes del primer ataque.</p>
+                </article>
+                <article class="instruction-card" data-how-to-slide>
+                  <strong>2. Ataca</strong>
+                  <p>Elige un proyectil, ajusta el ángulo del cañón y mantén Lanzar para cargar potencia. Cada tiro cuenta.</p>
+                </article>
+                <article class="instruction-card" data-how-to-slide>
+                  <strong>3. Lee las cartas</strong>
+                  <p>Las descripciones dan pistas. Algunos ataques dañan más ciertos bloques y algunas respuestas protegen mejor otros.</p>
+                </article>
+                <article class="instruction-card" data-how-to-slide>
+                  <strong>4. Observa el efecto</strong>
+                  <p>Mira los puntos y mensajes que aparecen sobre los bloques. Te ayudan a aprender qué decisiones fueron más eficaces.</p>
+                </article>
+                <article class="instruction-card" data-how-to-slide>
+                  <strong>5. Gana la ronda</strong>
+                  <p>Si el castillo cae, gana el ataque. Si resiste, gana quien tenga mejor balance entre daño causado y recuperación lograda.</p>
+                </article>
+              </div>
+              <div class="how-to-controls">
+                <button id="how-to-prev" class="carousel-button" type="button" aria-label="Instrucción anterior">←</button>
+                <span id="how-to-count">1 / 5</span>
+                <button id="how-to-next" class="carousel-button" type="button" aria-label="Siguiente instrucción">→</button>
+              </div>
+            </div>
+            <div class="start-actions">
+              <button id="start-button" type="button">Comenzar</button>
+              <button id="how-to-button" class="secondary" type="button" aria-expanded="false" aria-controls="how-to-panel">Cómo jugar</button>
+            </div>
+          </div>
+        </section>
+
+        <section id="result-screen" class="overlay hidden" aria-live="polite">
+          <div class="panel result">
+            <p class="label">Resultado</p>
+            <h2 id="result-title">Castillo resistente</h2>
+            <div id="result-stats" class="result-stats"></div>
+            <p id="result-reflection"></p>
+            <button id="play-again-button" type="button">Volver a jugar</button>
+          </div>
+        </section>
+      </main>
+
+      <footer class="toolbar" aria-label="Herramientas de juego">
+        <section class="mode-controls" aria-label="Modo del turno">
+          <h2>Turno</h2>
+          <strong id="turn-mode-label" class="turn-mode-label">Ataque</strong>
+          <p id="turn-actions" class="turn-actions">1 tiro disponible</p>
+        </section>
+        <section id="attack-panel">
+          <h2>Proyectiles</h2>
+          <div id="projectile-buttons" class="button-row"></div>
+        </section>
+        <section id="launcher-panel" class="launcher-controls" aria-label="Controles del lanzador">
+          <h2>Lanzador</h2>
+          <div class="aim-controls">
+            <button id="angle-up-button" class="angle-button" type="button" aria-label="Subir ángulo">↑</button>
+            <div class="angle-readout"><span>Ángulo</span><strong id="angle-value">22°</strong></div>
+            <button id="angle-down-button" class="angle-button" type="button" aria-label="Bajar ángulo">↓</button>
+          </div>
+          <button id="launch-button" class="launch-button" type="button">Lanzar</button>
+          <div class="power-meter" aria-label="Potencia de lanzamiento"><span id="power-fill"></span></div>
+        </section>
+        <section id="defense-panel" class="hidden">
+          <h2>Reparación</h2>
+          <div id="repair-buttons" class="button-row"></div>
+        </section>
+        <section class="turn-controls">
+          <p id="message" class="message" role="status"></p>
+        </section>
+      </footer>
+    </div>
+
+    <script src="vendor/matter.min.js"></script>
+    <script type="module" src="dist/game.js"></script>
+  </body>
+</html>
