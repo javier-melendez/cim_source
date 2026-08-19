@@ -12,7 +12,7 @@ export const CONFIG = {
     maxPull: 145,
     powerScale: 1.725,
     stiffness: 0.045,
-    velocityLimit: 30.4,
+    velocityLimit: 27.36,
     flightTimeoutMs: 6000
   },
   castle: {

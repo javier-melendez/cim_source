@@ -1,6 +1,6 @@
 import { CONFIG } from "./config.js";
 import { applyDamage, calculateIntegrity, createCastle, drawBlockLabel } from "./castle.js";
-import { attachProjectile, createProjectile, drawProjectileSymbol, drawTrajectory, launchVelocityFromAngle } from "./projectiles.js";
+import { attachProjectile, createProjectile, drawProjectileSymbol, launchVelocityFromAngle } from "./projectiles.js";
 import { canRepair, repairAmount } from "./repairs.js";
 const { Engine, Render, Runner, Bodies, Body, Composite, Events, Query, Vector } = Matter;
 const AIM_STEP = 3;
@@ -187,12 +187,9 @@ function setupUi() {
     document.querySelector("#sound-toggle").addEventListener("click", toggleSound);
     els.angleUpButton.addEventListener("click", () => changeAimAngle(-AIM_STEP));
     els.angleDownButton.addEventListener("click", () => changeAimAngle(AIM_STEP));
-    els.launchButton.addEventListener("pointerdown", startLaunchCharge);
-    els.launchButton.addEventListener("pointerup", releaseLaunchCharge);
-    els.launchButton.addEventListener("pointercancel", cancelLaunchCharge);
+    els.launchButton.addEventListener("click", handleLaunchButtonClick);
     window.addEventListener("resize", resizeCanvas);
     window.addEventListener("keydown", handleKeyDown);
-    window.addEventListener("keyup", handleKeyUp);
     window.addEventListener("blur", cancelLaunchCharge);
     renderToolbars();
 }
@@ -391,7 +388,7 @@ function handleKeyDown(event) {
     if (key === " ") {
         if (event.repeat)
             return;
-        startKeyboardLaunchCharge(event);
+        toggleKeyboardLaunchCharge(event);
         return;
     }
     const step = event.shiftKey ? AIM_STEP * 2 : AIM_STEP;
@@ -399,16 +396,6 @@ function handleKeyDown(event) {
         changeAimAngle(-step);
     if (key === "arrowdown")
         changeAimAngle(step);
-}
-function handleKeyUp(event) {
-    if (event.defaultPrevented || event.metaKey || event.ctrlKey || event.altKey)
-        return;
-    if (event.key !== " ")
-        return;
-    if (state.chargeSource !== "keyboard")
-        return;
-    event.preventDefault();
-    releaseKeyboardLaunchCharge();
 }
 function positionProjectileAtLauncher() {
     if (state.interaction !== "attack" || !state.activeProjectile || state.activeProjectile.game.launched)
@@ -567,6 +554,7 @@ function selectProjectile(key) {
         return;
     if (state.projectileCounts[key] <= 0)
         return;
+    cancelLaunchCharge();
     state.selectedProjectile = key;
     message(projectileSummary(key));
     if (state.activeProjectile && !state.activeProjectile.game.launched)
@@ -606,7 +594,8 @@ function drawOverlay() {
     state.blocks.forEach((block) => drawBlockLabel(ctx, block));
     Composite.allBodies(engine.world).filter((body) => body.game?.kind === "projectile").forEach((body) => drawProjectileSymbol(ctx, body));
     if (state.activeProjectile && !state.activeProjectile.game.launched && state.interaction === "attack") {
-        drawTrajectory(ctx, state.activeProjectile, anchorPoint(), state.activeProjectile.game.type, aimVelocity(currentLaunchPower()), cannonMuzzlePoint());
+        // Trayectoria oculta temporalmente para probar el lanzamiento sin puntos guia.
+        // drawTrajectory(ctx, state.activeProjectile, anchorPoint(), state.activeProjectile.game.type, aimVelocity(currentLaunchPower()), cannonMuzzlePoint());
     }
 }
 function drawAimGuide(ctx) {
@@ -759,6 +748,7 @@ function updateUi() {
     els.angleValue.textContent = `${Math.abs(Math.round(state.aimAngle))}°`;
     els.powerFill.style.width = `${Math.round(currentLaunchPower() * 100)}%`;
     els.launchButton.classList.toggle("charging", state.charging);
+    els.launchButton.textContent = state.charging ? "Soltar" : "Cargar";
     els.launchButton.disabled = !canLaunch();
     els.angleUpButton.disabled = !canLaunch();
     els.angleDownButton.disabled = !canLaunch();
@@ -775,22 +765,27 @@ function changeAimAngle(delta) {
     state.aimAngle = Math.max(MIN_AIM_ANGLE, Math.min(MAX_AIM_ANGLE, state.aimAngle + delta));
     updateUi();
 }
-function startLaunchCharge(event) {
+function handleLaunchButtonClick(event) {
     if (!canLaunch())
         return;
-    if (state.charging)
-        return;
     event.preventDefault();
-    event.currentTarget.setPointerCapture?.(event.pointerId);
-    beginLaunchCharge("pointer");
+    if (state.charging && state.chargeSource === "button") {
+        releaseChargedProjectile();
+        return;
+    }
+    if (!state.charging)
+        beginLaunchCharge("button");
 }
-function startKeyboardLaunchCharge(event) {
+function toggleKeyboardLaunchCharge(event) {
     if (!canLaunch())
         return;
-    if (state.charging)
-        return;
     event.preventDefault();
-    beginLaunchCharge("keyboard");
+    if (state.charging && state.chargeSource === "keyboard") {
+        releaseChargedProjectile();
+        return;
+    }
+    if (!state.charging)
+        beginLaunchCharge("keyboard");
 }
 function beginLaunchCharge(source) {
     state.charging = true;
@@ -803,22 +798,13 @@ function updateCharge() {
     if (!state.charging)
         return;
     const elapsed = performance.now() - state.chargeStart;
-    const ratio = Math.min(1, elapsed / CHARGE_DURATION_MS);
+    const cycle = elapsed % (CHARGE_DURATION_MS * 2);
+    const ratio = cycle <= CHARGE_DURATION_MS
+        ? cycle / CHARGE_DURATION_MS
+        : 1 - ((cycle - CHARGE_DURATION_MS) / CHARGE_DURATION_MS);
     state.launchPower = MIN_LAUNCH_POWER + (MAX_LAUNCH_POWER - MIN_LAUNCH_POWER) * ratio;
     updateUi();
     state.chargeFrame = window.requestAnimationFrame(updateCharge);
-}
-function releaseLaunchCharge(event) {
-    if (!state.charging || state.chargeSource !== "pointer")
-        return;
-    event.preventDefault();
-    event.currentTarget.releasePointerCapture?.(event.pointerId);
-    releaseChargedProjectile();
-}
-function releaseKeyboardLaunchCharge() {
-    if (!state.charging || state.chargeSource !== "keyboard")
-        return;
-    releaseChargedProjectile();
 }
 function releaseChargedProjectile() {
     stopLaunchCharge();
