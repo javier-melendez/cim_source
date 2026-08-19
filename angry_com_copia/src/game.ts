@@ -279,12 +279,21 @@ function resetGame() {
 
 function tickTimer() {
   if (state.mode !== "playing") return;
-  state.playerTimes[state.activePlayer] -= 1;
+  state.playerTimes[state.activePlayer] = Math.max(0, state.playerTimes[state.activePlayer] - 1);
   const integrity = calculateIntegrity(state.blocks);
   if (integrity.identity <= 0) deteriorate(["image", "reputation"]);
   if (integrity.image <= 0) deteriorate(["reputation"]);
   updateUi();
-  if (state.playerTimes[state.activePlayer] <= 0) finishByDamageBalance("Tiempo agotado.");
+  if (state.playerTimes[state.activePlayer] <= 0) handlePlayerTimeExpired();
+}
+
+function handlePlayerTimeExpired() {
+  const expiredPlayer = playerLabel(state.activePlayer);
+  if (!hasAnyPlayerTimeLeft()) {
+    finishByDamageBalance("Tiempo agotado.");
+    return;
+  }
+  switchTurn(`${expiredPlayer} agotó su tiempo.`);
 }
 
 function finishWithWinner(playerIndex, reason = "") {
@@ -826,12 +835,18 @@ function aimVelocity(power) {
 
 function switchTurn(text) {
   resetTurnActions();
-  state.activePlayer = state.activePlayer === 0 ? 1 : 0;
+  state.activePlayer = nextPlayerWithTime();
   const turnText = configureTurnForActivePlayer() || text;
   if (state.mode === "finished") return;
   renderToolbars();
   updateUi();
   message(turnMessage(turnText));
+}
+
+function nextPlayerWithTime() {
+  const nextPlayer = state.activePlayer === 0 ? 1 : 0;
+  if (state.playerTimes[nextPlayer] > 0) return nextPlayer;
+  return state.activePlayer;
 }
 
 function configureTurnForActivePlayer() {
@@ -900,6 +915,10 @@ function hasValidDefenseMove() {
 
 function hasProjectilesLeft() {
   return Object.values(state.projectileCounts).some((count: any) => count > 0);
+}
+
+function hasAnyPlayerTimeLeft() {
+  return state.playerTimes.some((seconds) => seconds > 0);
 }
 
 function isCastleDestroyed() {
