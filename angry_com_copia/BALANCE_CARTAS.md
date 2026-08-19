@@ -7,7 +7,9 @@ Notas:
 - HP por bloque: Identidad `70`, Imagen `49`, Reputacion `35`.
 - Daño directo estimado: `baseDamage * multiplicador * damageScale`.
 - `damageScale` actual: `0.58`.
-- El daño real tambien depende de la velocidad/impacto del proyectil.
+- El daño directo depende del tipo de proyectil y del bloque golpeado; la velocidad solo afecta la trayectoria.
+- Todos los proyectiles usan la misma fisica: radio, densidad/peso, fuerza de lanzamiento, velocidad y trayectoria base. La diferencia entre cartas esta en el daño configurado y, en algunas cartas, daño de area sin empuje fisico.
+- El daño directo se degrada por cubo unico tocado por el mismo proyectil: 1er cubo `100%`, 2do `80%`, 3ro `48%`, 4to `16%`, 5to `1.6%`, luego `0%`.
 - El daño maximo por impacto directo tiene tope de `95`.
 - Las curas pueden pasar del 100% y convertirse en armadura hasta el limite definido en el juego.
 
@@ -15,13 +17,13 @@ Notas:
 
 | Proyectil | Usos | Daño base | Identidad | Imagen | Reputacion | Area | Descripcion |
 |---|---:|---:|---:|---:|---:|---|---|
-| Rumor | 1 | 45 | x0.60 / 16 | x1.10 / 29 | x1.45 / 38 | No | Version no verificada que circula con rapidez y obliga a responder antes de que se vuelva creible. |
-| Mala experiencia | 1 | 70 | x0.80 / 32 | x1.55 / 63 | x1.05 / 43 | No | Cliente afectado o servicio fallido que expone una brecha entre la promesa y la experiencia real. |
-| Crisis en redes | 2 | 90 | x0.55 / 29 | x1.35 / 70 | x1.65 / 86 | Radio 115, daño 20 | Conversacion viral negativa que concentra atencion publica y acelera la presion sobre la organizacion. |
-| Investigacion periodistica | 2 | 115 | x1.35 / 90 | x1.10 / 73 | x1.45 / 97 | No | Hallazgo documentado por medios que pone a prueba la consistencia entre discurso, evidencia y decisiones. |
-| Escandalo ambiental | 3 | 135 | x1.80 / 141 | x1.00 / 78 | x1.25 / 98 | Radio 150, daño 34 | Crisis etica o ambiental que cuestiona practicas de fondo y exige una respuesta verificable. |
+| Falsos diferenciales | 1 | 52 | x0.55 / 17 | x1.45 / 44 | x0.35 / 11 | No | Comunica atributos comunes como si fueran ventajas unicas. Daña sobre todo el posicionamiento y empuja la decision hacia precio. |
+| Comoditizacion | 1 | 68 | x0.35 / 14 | x1.65 / 65 | x0.55 / 22 | No | Vuelve a la marca reemplazable y generica. Es fuerte contra imagen/posicionamiento, pero debil contra reputacion acumulada. |
+| Escandalo reputacional | 2 | 92 | x0.65 / 35 | x1.20 / 64 | x1.75 / 93 | Radio 115, daño 20 | Ataque con informacion negativa, real o sacada de contexto. Es un arma fuerte contra reputacion y requiere precision. |
+| Brecha decir-hacer | 2 | 105 | x1.30 / 79 | x0.95 / 58 | x1.55 / 94 | No | Desfase entre discurso publico y conducta real. Golpea reputacion e identidad porque contradice lo que el actor dice ser. |
+| Bumeran de marca | 3 | 118 | x0.90 / 62 | x1.70 / 116 | x1.25 / 86 | Radio 150, daño 32 | La promesa brillante de la marca se usa en su contra al revelar practicas ocultas. Es devastador contra imagen. |
 
-Los numeros despues de `/` son daño directo aproximado con factor de impacto `1.0`, antes de aplicar el tope global de `95`.
+Los numeros despues de `/` son daño directo del primer cubo tocado, antes de aplicar el tope global de `95`. En cubos siguientes se aplica la degradacion por orden de contacto.
 
 Turnos: la defensa inicia y el ataque tiene `9` proyectiles. La partida termina al resolver el ultimo ataque si el castillo no cae antes, por lo que ambos jugadores tienen `9` turnos.
 
@@ -29,14 +31,14 @@ Turnos: la defensa inicia y el ataque tiene `9` proyectiles. La partida termina 
 
 | Defensa | Usos | Cura base | Identidad | Imagen | Reputacion | Descripcion |
 |---|---:|---:|---:|---:|---:|---|
-| Comunicado de prensa | 9 | 42 | No aplica | x1.25 / 53 | x1.00 / 42 | Ordena la informacion disponible, fija postura publica y reduce incertidumbre. |
-| Disculpa publica | 6 | 50 | No aplica | x1.00 / 50 | x1.25 / 63 | Reconoce el daño, asume responsabilidad y abre una ruta de reparacion. |
-| Informe de transparencia | 7 | 58 | x1.35 / 78 | x1.00 / 58 | x1.00 / 58 | Entrega evidencia, datos y criterios para que la respuesta pueda ser verificada. |
-| Correccion interna | 6 | 65 | x1.45 / 94 | x1.10 / 72 | No aplica | Cambia procesos, responsables o protocolos para corregir el origen del problema. |
-| Publicidad | 6 | 46 | No aplica | x1.45 / 67 | x0.85 / 39 | Refuerza mensajes positivos y busca recuperar atencion favorable. |
-| Donacion | 4 | 40 | No aplica | x0.65 / 26 | x1.60 / 64 | Gesto social visible que intenta demostrar compromiso con una causa o comunidad. |
-| Accion comunitaria | 4 | 56 | x1.20 / 67 | No aplica | x1.25 / 70 | Trabajo directo con grupos afectados para reconstruir confianza desde acciones concretas. |
+| Variabilidad de codificacion | 8 | 38 | No aplica | x1.20 / 46 | No aplica | Repite el mensaje central con medios y ejecuciones distintas. Cura notoriedad e imagen, no una crisis reputacional. |
+| Disculpa completa | 5 | 50 | x0.40 / 20 | x0.60 / 30 | x1.50 / 75 | Reconoce la falta, asume responsabilidad y ofrece reparacion. Cura con fuerza la reputacion si se percibe sincera. |
+| Dialogo simetrico | 6 | 54 | x1.10 / 59 | x0.80 / 43 | x1.35 / 73 | Escucha, negocia y modifica conducta. Repara legitimidad y confianza mejor que una respuesta puramente persuasiva. |
+| Auditoria RSC | 5 | 60 | x1.35 / 81 | x0.45 / 27 | x1.05 / 63 | Revisa practicas eticas y sociales para alinear lo que se es, se hace y se comunica. Cura identidad y reputacion. |
+| Marca-experiencia | 6 | 50 | x0.70 / 35 | x1.15 / 57 | x1.10 / 55 | Repara desde experiencias consistentes en cada contacto. Fortalece imagen y reputacion de forma acumulada. |
+| Educacion del consumidor | 4 | 45 | x0.75 / 34 | x1.25 / 56 | x0.45 / 20 | Enseña al publico a valorar atributos tecnicos o simbolicos. Protege posicionamiento y reduce la guerra de precios. |
+| Auditoria de diferenciales | 4 | 40 | x0.80 / 32 | x1.20 / 48 | No aplica | Comprueba que el diferencial sea unico, valorado y comunicable. Previene promesas debiles y errores de posicionamiento. |
 
 Los numeros despues de `/` son curacion potencial. En partida, la curacion real puede convertirse en armadura si el bloque supera el 100%, hasta el limite permitido.
 
-Potencial recuperable aproximado si cada carta se usa sobre su bloque mas favorable: `2897`, equivalente a `1.71x` la resistencia base total del castillo (`1694`).
+Potencial recuperable aproximado si cada carta se usa sobre su bloque mas favorable: `2344`, equivalente a `1.38x` la resistencia base total del castillo (`1694`).

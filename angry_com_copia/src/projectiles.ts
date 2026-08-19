@@ -31,7 +31,7 @@ export function createProjectile(type, anchor) {
       }
     }
   });
-  body.game = { kind: "projectile", type, launched: false, exploded: false };
+  body.game = { kind: "projectile", type, launched: false, exploded: false, hitBlockIds: [] };
   return body;
 }
 
@@ -60,15 +60,13 @@ export function launchVelocity(projectile, anchor, type) {
   const cfg = CONFIG.projectiles[type];
   const pull = Vector.sub(anchor, projectile.position);
   const raw = Vector.mult(pull, 0.135 * CONFIG.slingshot.powerScale * cfg.force);
-  const speed = Vector.magnitude(raw);
-  if (speed <= CONFIG.slingshot.velocityLimit) return raw;
-  return Vector.mult(Vector.normalise(raw), CONFIG.slingshot.velocityLimit);
+  return raw;
 }
 
 export function launchVelocityFromAngle(angleDegrees, power, type) {
   const cfg = CONFIG.projectiles[type];
   const radians = angleDegrees * Math.PI / 180;
-  const strength = Math.min(CONFIG.slingshot.velocityLimit, CONFIG.slingshot.velocityLimit * Math.max(0.1, Math.min(1, power)) * cfg.force);
+  const strength = CONFIG.slingshot.velocityLimit * Math.max(0.1, Math.min(1, power)) * cfg.force;
   return {
     x: Math.cos(radians) * strength,
     y: Math.sin(radians) * strength

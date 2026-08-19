@@ -4,14 +4,15 @@ export const CONFIG = {
     timeScale: 0.68,
     damageScale: 0.58,
     maxImpactDamage: 95,
+    projectileHitFalloff: [1, 0.8, 0.48, 0.16, 0.016],
     collisionCooldownMs: 260,
     deteriorationPerSecond: 2.2,
     slingshot: {
         anchorRatio: { x: 0.17, y: 0.67 },
         maxPull: 145,
-        powerScale: 1.5,
+        powerScale: 1.725,
         stiffness: 0.045,
-        velocityLimit: 25,
+        velocityLimit: 30.4,
         flightTimeoutMs: 6000
     },
     castle: {
@@ -25,61 +26,60 @@ export const CONFIG = {
     },
     projectiles: {
         rumor: {
-            label: "Rumor", symbol: "?", count: 1, radius: 15, density: 0.002, baseDamage: 45, color: "#6b60b8",
-            force: 1.16, multipliers: { identity: 0.6, image: 1.1, reputation: 1.45 },
-            description: "Version no verificada que circula con rapidez y obliga a responder antes de que se vuelva creíble."
+            label: "Falsos diferenciales", symbol: "?", count: 1, radius: 24, density: 0.0035, baseDamage: 52, color: "#6b60b8",
+            force: 1, multipliers: { identity: 0.55, image: 1.45, reputation: 0.35 },
+            description: "Comunica atributos comunes como si fueran ventajas únicas. Daña sobre todo el posicionamiento y empuja la decisión hacia precio."
         },
         badExperience: {
-            label: "Mala experiencia", symbol: "!", count: 1, radius: 21, density: 0.0032, baseDamage: 70, color: "#c27b31",
-            force: 1, multipliers: { identity: 0.8, image: 1.55, reputation: 1.05 },
-            description: "Cliente afectado o servicio fallido que expone una brecha entre la promesa y la experiencia real."
+            label: "Comoditización", symbol: "!", count: 1, radius: 24, density: 0.0035, baseDamage: 68, color: "#c27b31",
+            force: 1, multipliers: { identity: 0.35, image: 1.65, reputation: 0.55 },
+            description: "Vuelve a la marca reemplazable y genérica. Es fuerte contra imagen/posicionamiento, pero débil contra reputación acumulada."
         },
         socialCrisis: {
-            label: "Crisis en redes", symbol: "#", count: 2, radius: 22, density: 0.003, baseDamage: 90, color: "#b53658",
-            force: 0.98, explosionRadius: 115, explosionDamage: 20, multipliers: { identity: 0.55, image: 1.35, reputation: 1.65 },
-            description: "Conversación viral negativa que concentra atención pública y acelera la presión sobre la organización."
+            label: "Escándalo reputacional", symbol: "#", count: 2, radius: 24, density: 0.0035, baseDamage: 92, color: "#b53658",
+            force: 1, explosionRadius: 115, explosionDamage: 20, multipliers: { identity: 0.65, image: 1.2, reputation: 1.75 },
+            description: "Ataque con información negativa, real o sacada de contexto. Es un arma fuerte contra reputación y requiere precisión."
         },
         mediaInvestigation: {
-            label: "Investigación periodística", symbol: "P", count: 2, radius: 24, density: 0.004, baseDamage: 115, color: "#d6a93d",
-            force: 0.94, multipliers: { identity: 1.35, image: 1.1, reputation: 1.45 },
-            description: "Hallazgo documentado por medios que pone a prueba la consistencia entre discurso, evidencia y decisiones."
+            label: "Brecha decir-hacer", symbol: "P", count: 2, radius: 24, density: 0.0035, baseDamage: 105, color: "#d6a93d",
+            force: 1, multipliers: { identity: 1.3, image: 0.95, reputation: 1.55 },
+            description: "Desfase entre discurso público y conducta real. Golpea reputación e identidad porque contradice lo que el actor dice ser."
         },
         environmentalScandal: {
-            label: "Escándalo ambiental", symbol: "E", count: 3, radius: 30, density: 0.006, baseDamage: 135, color: "#315f38",
-            force: 0.84, explosionRadius: 150, explosionDamage: 34, multipliers: { identity: 1.8, image: 1, reputation: 1.25 },
-            description: "Crisis ética o ambiental que cuestiona prácticas de fondo y exige una respuesta verificable."
+            label: "Búmeran de marca", symbol: "E", count: 3, radius: 24, density: 0.0035, baseDamage: 118, color: "#315f38",
+            force: 1, explosionRadius: 150, explosionDamage: 32, multipliers: { identity: 0.9, image: 1.7, reputation: 1.25 },
+            description: "La promesa brillante de la marca se usa en su contra al revelar prácticas ocultas. Es devastador contra imagen."
         }
     },
     repairs: {
         pressRelease: {
-            label: "Comunicado de prensa", count: 9, amount: 42, allowed: ["image", "reputation"], multipliers: { image: 1.25 },
-            description: "Ordena la información disponible, fija postura pública y reduce incertidumbre."
+            label: "Variabilidad de codificación", count: 8, amount: 38, allowed: ["image"], multipliers: { image: 1.2 },
+            description: "Repite el mensaje central con medios y ejecuciones distintas. Cura notoriedad e imagen, no una crisis reputacional."
         },
         publicApology: {
-            label: "Disculpa pública", count: 6, amount: 50, allowed: ["image", "reputation"], multipliers: { reputation: 1.25 },
-            description: "Reconoce el daño, asume responsabilidad y abre una ruta de reparación."
+            label: "Disculpa completa", count: 5, amount: 50, allowed: ["identity", "image", "reputation"], multipliers: { identity: 0.4, image: 0.6, reputation: 1.5 },
+            description: "Reconoce la falta, asume responsabilidad y ofrece reparación. Cura con fuerza la reputación si se percibe sincera."
         },
         transparencyReport: {
-            label: "Informe de transparencia", count: 7, amount: 58, allowed: ["identity", "image", "reputation"], multipliers: { identity: 1.35 },
-            description: "Entrega evidencia, datos y criterios para que la respuesta pueda ser verificada."
+            label: "Diálogo simétrico", count: 6, amount: 54, allowed: ["identity", "image", "reputation"], multipliers: { identity: 1.1, image: 0.8, reputation: 1.35 },
+            description: "Escucha, negocia y modifica conducta. Repara legitimidad y confianza mejor que una respuesta puramente persuasiva."
         },
         internalCorrection: {
-            label: "Corrección interna", count: 6, amount: 65, allowed: ["identity", "image"], multipliers: { identity: 1.45, image: 1.1 },
-            description: "Cambia procesos, responsables o protocolos para corregir el origen del problema."
+            label: "Auditoría RSC", count: 5, amount: 60, allowed: ["identity", "image", "reputation"], multipliers: { identity: 1.35, image: 0.45, reputation: 1.05 },
+            description: "Revisa prácticas éticas y sociales para alinear lo que se es, se hace y se comunica. Cura identidad y reputación."
         },
         advertisingCampaign: {
-            label: "Publicidad", count: 6, amount: 46, allowed: ["image", "reputation"], multipliers: { image: 1.45, reputation: 0.85 },
-            description: "Refuerza mensajes positivos y busca recuperar atención favorable."
+            label: "Marca-experiencia", count: 6, amount: 50, allowed: ["identity", "image", "reputation"], multipliers: { identity: 0.7, image: 1.15, reputation: 1.1 },
+            description: "Repara desde experiencias consistentes en cada contacto. Fortalece imagen y reputación de forma acumulada."
         },
         donation: {
-            label: "Donación", count: 4, amount: 40, allowed: ["image", "reputation"], multipliers: { image: 0.65, reputation: 1.6 },
-            description: "Gesto social visible que intenta demostrar compromiso con una causa o comunidad."
+            label: "Educación del consumidor", count: 4, amount: 45, allowed: ["identity", "image", "reputation"], multipliers: { identity: 0.75, image: 1.25, reputation: 0.45 },
+            description: "Enseña al público a valorar atributos técnicos o simbólicos. Protege posicionamiento y reduce la guerra de precios."
         },
         communityAction: {
-            label: "Acción comunitaria", count: 4, amount: 56, allowed: ["identity", "reputation"], multipliers: { identity: 1.2, reputation: 1.25 },
-            description: "Trabajo directo con grupos afectados para reconstruir confianza desde acciones concretas."
+            label: "Auditoría de diferenciales", count: 4, amount: 40, allowed: ["identity", "image"], multipliers: { identity: 0.8, image: 1.2 },
+            description: "Comprueba que el diferencial sea único, valorado y comunicable. Previene promesas débiles y errores de posicionamiento."
         }
     },
     victory: { resistant: 70, vulnerable: 40, severe: 1 }
 };
-//# sourceMappingURL=config.js.map

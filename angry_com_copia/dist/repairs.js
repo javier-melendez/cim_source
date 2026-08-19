@@ -20,4 +20,3 @@ export function repairAmount(block, materialKey, integrity) {
 function armorLimit(block) {
     return block.game.maxHp * ARMOR_LIMIT_RATIO;
 }
-//# sourceMappingURL=repairs.js.map

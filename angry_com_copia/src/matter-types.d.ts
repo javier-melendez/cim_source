@@ -30,6 +30,7 @@ type ProjectileData = {
   type: ProjectileKey;
   launched: boolean;
   exploded: boolean;
+  hitBlockIds: string[];
 };
 
 type GameBody = any & {

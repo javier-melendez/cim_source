@@ -12,6 +12,7 @@ const CHARGE_DURATION_MS = 1700;
 const ATTACKS_PER_TURN = 1;
 const DEFENSE_PLAYER_INDEX = 1;
 const DEFENSE_MOVES_PER_TURN = 5;
+const COLLAPSED_LEVEL_ATTACK_BONUS = 150;
 const FALL_DAMAGE_COOLDOWN_MS = 700;
 const INITIAL_FALL_DAMAGE_GRACE_MS = 1400;
 const FALL_DAMAGE_SPEED = 1.2;
@@ -27,11 +28,11 @@ CANNON_BASE.src = "./sprites/canon_base_triangular.png";
 // - El "tubo" rota desde el pivote; sus offsets son relativos a ese pivote.
 // - CANNON_BARREL_LENGTH es la boca logica: de ahi arrancan la guia y los puntos de trayectoria.
 // - El proyectil aparece cerca de la linea del tubo, a CANNON_BARREL_LENGTH - CANNON_PROJECTILE_SETBACK.
-const CANNON_BARREL_LENGTH = 50;
+const CANNON_BARREL_LENGTH = 68;
 // Cuanto se mete el proyectil hacia atras desde la boca. Mas alto = proyectil menos salido.
-const CANNON_PROJECTILE_SETBACK = 30;
+const CANNON_PROJECTILE_SETBACK = 40;
 // Ajuste fino vertical del proyectil. Negativo = mas arriba; positivo = mas abajo.
-const CANNON_PROJECTILE_OFFSET_Y = -20;
+const CANNON_PROJECTILE_OFFSET_Y = -25;
 // Tamano visual de la base de madera.
 const CANNON_BASE_WIDTH = 126;
 const CANNON_BASE_HEIGHT = 104;
@@ -195,6 +196,17 @@ function setupUi() {
     window.addEventListener("blur", cancelLaunchCharge);
     renderToolbars();
 }
+function setupEvents() {
+    Events.on(engine, "beforeUpdate", () => {
+        if (state.activeProjectile && !state.activeProjectile.game.launched) {
+            positionProjectileAtLauncher();
+        }
+    });
+    Events.on(engine, "afterUpdate", keepProjectilesAboveFloor);
+    Events.on(engine, "collisionStart", handleCollisions);
+    Events.on(render, "afterRender", drawOverlay);
+    render.canvas.addEventListener("click", handleRepairClick);
+}
 function toggleHowTo() {
     const isHidden = els.howToPanel.classList.toggle("hidden");
     els.startIntro.classList.toggle("hidden", !isHidden);
@@ -214,17 +226,6 @@ function renderHowToSlide() {
         slide.classList.toggle("active", index === howToIndex);
     });
     els.howToCount.textContent = `${howToIndex + 1} / ${total}`;
-}
-function setupEvents() {
-    Events.on(engine, "beforeUpdate", () => {
-        if (state.activeProjectile && !state.activeProjectile.game.launched) {
-            positionProjectileAtLauncher();
-        }
-    });
-    Events.on(engine, "afterUpdate", keepProjectilesAboveFloor);
-    Events.on(engine, "collisionStart", handleCollisions);
-    Events.on(render, "afterRender", drawOverlay);
-    render.canvas.addEventListener("click", handleRepairClick);
 }
 function startGame() {
     state.mode = "playing";
@@ -281,12 +282,15 @@ function finishWithWinner(playerIndex, reason = "") {
     window.clearTimeout(state.flightTimer);
     cancelLaunchCharge();
     const integrity = calculateIntegrity(state.blocks);
+    const collapsedLevelCount = countCollapsedLevels(integrity);
+    const attackBonus = collapsedLevelCount * COLLAPSED_LEVEL_ATTACK_BONUS;
     els.resultTitle.textContent = playerIndex === 0 ? "Gana el ataque" : "Gana la defensa";
     els.resultStats.innerHTML = [
         ...Object.entries(integrity).map(([key, value]) => `<div>${labelLevel(key)}: <strong>${value}%</strong></div>`),
         `<div>Daño recibido: <strong>${Math.round(state.damageReceived)}</strong></div>`,
+        attackBonus ? `<div>Bonus ataque crítico: <strong>+${attackBonus}</strong></div>` : "",
         `<div>Daño recuperado: <strong>${Math.round(state.damageRecovered)}</strong></div>`
-    ].join("");
+    ].filter(Boolean).join("");
     els.resultReflection.textContent = reason;
     els.resultScreen.classList.remove("hidden");
     playTone(playerIndex === 0 ? 220 : 420, 0.22);
@@ -296,13 +300,15 @@ function finishByDamageBalance(reason = "") {
         finishWithWinner(0, "El castillo quedó completamente destruido.");
         return;
     }
-    const received = Math.round(state.damageReceived);
+    const integrity = calculateIntegrity(state.blocks);
+    const attackBonus = countCollapsedLevels(integrity) * COLLAPSED_LEVEL_ATTACK_BONUS;
+    const received = Math.round(state.damageReceived + attackBonus);
     const recovered = Math.round(state.damageRecovered);
     if (received > recovered) {
-        finishWithWinner(0, `${reason} El daño recibido (${received}) superó el daño recuperado (${recovered}).`);
+        finishWithWinner(0, `${reason} El puntaje de ataque (${received}) superó el daño recuperado (${recovered}).`);
         return;
     }
-    finishWithWinner(1, `${reason} El daño recuperado (${recovered}) igualó o superó el daño recibido (${received}).`);
+    finishWithWinner(1, `${reason} El daño recuperado (${recovered}) igualó o superó el puntaje de ataque (${received}).`);
 }
 function launchProjectile() {
     if (!state.activeProjectile || !state.sling)
@@ -458,10 +464,16 @@ function damageBlockFromProjectile(projectile, block, pair) {
     if ((state.lastCollision.get(key) || 0) + CONFIG.collisionCooldownMs > now)
         return;
     state.lastCollision.set(key, now);
+    if (projectile.game.hitBlockIds.includes(block.game.id))
+        return;
+    const hitIndex = projectile.game.hitBlockIds.length;
+    const hitFalloff = CONFIG.projectileHitFalloff[hitIndex] ?? 0;
+    projectile.game.hitBlockIds.push(block.game.id);
+    if (hitFalloff <= 0)
+        return;
     const cfg = CONFIG.projectiles[projectile.game.type];
-    const relativeSpeed = Vector.magnitude(Vector.sub(projectile.velocity, block.velocity));
-    const factorImpact = Math.min(2.4, Math.max(0.35, relativeSpeed / 9));
-    const damage = Math.min(CONFIG.maxImpactDamage, cfg.baseDamage * cfg.multipliers[block.game.level] * factorImpact * CONFIG.damageScale);
+    const directDamage = Math.min(CONFIG.maxImpactDamage, cfg.baseDamage * cfg.multipliers[block.game.level] * CONFIG.damageScale);
+    const damage = directDamage * hitFalloff;
     const dealt = applyDamage(block, damage);
     recordBlockDamage(block, dealt);
     if (dealt > 0) {
@@ -488,8 +500,6 @@ function explode(projectile, cfg) {
         recordBlockDamage(block, dealt);
         if (dealt > 1)
             floatingText(block.position, `-${Math.round(dealt)}`, "damage", damageEffectivenessText(dealt, block.game.maxHp));
-        const push = Vector.mult(Vector.normalise(Vector.sub(block.position, projectile.position)), 0.035 * block.mass * falloff);
-        Body.applyForce(block, block.position, push);
     });
     flash(projectile.position, cfg.explosionRadius);
     shake();
@@ -904,6 +914,9 @@ function hasProjectilesLeft() {
 function isCastleDestroyed() {
     return Object.values(calculateIntegrity(state.blocks)).every((value) => value <= 0);
 }
+function countCollapsedLevels(integrity) {
+    return Object.values(integrity).filter((value) => value <= 0).length;
+}
 function isCastleFullIntegrity() {
     return Object.values(calculateIntegrity(state.blocks)).every((value) => value >= 100);
 }
@@ -1045,4 +1058,3 @@ function reflection(integrity, weakest) {
         return "La reputación puede dañarse rápidamente, pero una identidad sólida facilita su recuperación.";
     return `El nivel más afectado fue ${labelLevel(weakest)}: la comunicación integrada exige sostener la estructura completa.`;
 }
-//# sourceMappingURL=game.js.map

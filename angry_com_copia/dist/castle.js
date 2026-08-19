@@ -117,4 +117,3 @@ export function calculateIntegrity(blocks) {
         return [level, percent];
     }));
 }
-//# sourceMappingURL=castle.js.map
